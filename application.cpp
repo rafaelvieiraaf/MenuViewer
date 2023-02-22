@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <fstream>
 
 using namespace std;
 
@@ -74,7 +75,7 @@ void Application::keyhandle()
 	
 	while(bytes > 0)
 	{
-		if(ev.type == EV_KEY)
+		if(ev.type == EV_KEY and ev.value == 1)
 		{
 			keys[ev.code] = (ev.value != 0);
 			if(keys[KEY_LEFTCTRL] or keys[KEY_RIGHTCTRL])
@@ -87,13 +88,21 @@ void Application::keyhandle()
 			}
 			else
 			{
-				char c = ev.code;
-				cout << ev.code<< "=" << c << endl;
-				if(c == 'q')
+				if(keymap.contains(ev.code))
 				{
-					close();
+					char c = keymap[ev.code];
+					cout << c;
+					if(c == 'q' or c == 'Q' )
+					{
+						close();
+					}
 				}
+					
 			}
+		}
+		else if(ev.type == EV_SYN)
+		{
+			return;
 		}
 		bytes = read(fd,&ev,sizeof(ev));
 	}
@@ -111,13 +120,23 @@ void Application::init()
 
 	tio_atual = tio_orig;
 	
-	tio_atual.c_lflag &= ~(ICANON | ISIG | ECHO);
+	tio_atual.c_lflag &= ~(ICANON | ISIG | ECHO | ECHOE);
 	tio_atual.c_lflag |= CS8;
 	tio_atual.c_cc[VMIN] = 1;
 	tio_atual.c_cc[VTIME] = 0;
 	tcsetattr(STDIN_FILENO,TCSANOW,&tio_atual);
 	fcntl(STDIN_FILENO,F_SETFL,O_NONBLOCK);
-		
+
+	ifstream keymap_file("keymap.txt");
+	string line;
+	if(keymap_file.is_open())
+	{
+		while(getline(keymap_file,line))
+		{
+			solveKeyEntry(line,keymap);
+		}
+		keymap_file.close();
+	}
 }
 
 string getKeyboardPath()
@@ -196,6 +215,7 @@ void Application::finish()
 {
 	cout << endl << "finish application" << endl;
 	system("setterm -cursor on");
+	system("clear");
 	tcsetattr(STDIN_FILENO,TCSANOW,&tio_orig);
 	fcntl(STDIN_FILENO,F_SETFL,0);	
 }
@@ -203,4 +223,18 @@ void Application::finish()
 void signalhandle(int signal)
 {
 	cout << "Signal" << signal << "received" << endl;
+}
+
+void solveKeyEntry(const string& line,map<int,char>& keymap)
+{
+	int i = 0;
+	string code;
+
+	for( i = 0 ; i < line.size() and line[i] != ' ' ; ++i)
+	{
+		code += line[i];
+	}
+
+	i++;
+	keymap[std::stoi(code)] = line[i];
 }

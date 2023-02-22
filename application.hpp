@@ -3,9 +3,11 @@
 #include <vector>
 #include <string>
 #include <termios.h>
+#include <map>
 
 class Application
 {
+	std::map<int,char> keymap;
 	std::string keyboard;
 	termios tio_orig,tio_atual;
 	bool running;
@@ -24,5 +26,6 @@ class Application
 std::string getEventType(int evt);
 std::string getKeyboardPath();
 void signalhandle(int signal);
+void solveKeyEntry(const std::string& line,std::map<int,char>& keymap);
 
 #endif //APPLICATION_H
