@@ -6,6 +6,7 @@
 
 class Application
 {
+	std::string keyboard;
 	termios tio_orig,tio_atual;
 	bool running;
 	std::vector<std::string> args;
@@ -20,7 +21,8 @@ class Application
 		void close();
 	
 };
-
+std::string getEventType(int evt);
+std::string getKeyboardPath();
 void signalhandle(int signal);
 
 #endif //APPLICATION_H

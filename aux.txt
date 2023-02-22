@@ -1,0 +1,26 @@
+
+    EV_SYN:
+        
+    EV_KEY:
+        Used to describe state changes of keyboards, buttons, or other key-like devices.
+    EV_REL:
+        Used to describe relative axis value changes, e.g. moving the mouse 5 units to the left.
+    EV_ABS:
+        Used to describe absolute axis value changes, e.g. describing the coordinates of a touch on a touchscreen.
+    EV_MSC:
+        Used to describe miscellaneous input data that do not fit into other types.
+    EV_SW:
+        Used to describe binary state input switches.
+    EV_LED:
+        Used to turn LEDs on devices on and off.
+    EV_SND:
+        Used to output sound to devices.
+    EV_REP:
+        Used for autorepeating devices.
+    EV_FF:
+        Used to send force feedback commands to an input device.
+    EV_PWR:
+        A special type for power button and switch input.
+    EV_FF_STATUS:
+        Used to receive force feedback device status.
+v
