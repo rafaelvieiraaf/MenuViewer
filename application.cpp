@@ -74,7 +74,6 @@ void Application::keyhandle()
 	
 	while(bytes > 0)
 	{
-		cout << "key handle - " << getEventType(ev.type)  << endl;
 		if(ev.type == EV_KEY)
 		{
 			keys[ev.code] = (ev.value != 0);
@@ -96,7 +95,7 @@ void Application::keyhandle()
 				}
 			}
 		}
-		bytes = read(STDIN_FILENO,&ev,sizeof(ev));
+		bytes = read(fd,&ev,sizeof(ev));
 	}
 	
 }
