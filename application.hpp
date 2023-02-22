@@ -4,9 +4,10 @@
 #include <string>
 #include <termios.h>
 #include <map>
-
+#include <linux/input.h>
 class Application
 {
+	bool keys[KEY_MAX+1] = {false};
 	std::map<int,char> keymap;
 	std::string keyboard;
 	termios tio_orig,tio_atual;
@@ -18,7 +19,7 @@ class Application
 		virtual ~Application();
 	private:
 		void keyhandle();
-		void init();
+		bool init();
 		void finish();
 		void close();
 	

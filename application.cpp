@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <iostream>
 #include <cstdlib>
-#include <linux/input.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -29,16 +28,6 @@ Application::~Application()
 }
 int Application::run()
 {
-	cout << "seach keyboard" << endl;
-	try
-	{
-		keyboard =  getKeyboardPath();
-	}
-	catch(std::runtime_error ex)
-	{
-		cerr << ex.what();
-		return -1;
-	}
 	while(running)
 	{
 		try
@@ -71,33 +60,25 @@ void Application::keyhandle()
 	}
 	
 	int bytes = read(fd,&ev,sizeof(ev));
-	bool keys[KEY_MAX + 1] = {false};
 	
 	while(bytes > 0)
 	{
-		if(ev.type == EV_KEY and ev.value == 1)
+		if(ev.type == EV_KEY)
 		{
 			keys[ev.code] = (ev.value != 0);
-			if(keys[KEY_LEFTCTRL] or keys[KEY_RIGHTCTRL])
+			if(ev.value == 1 and keymap.contains(ev.code))
 			{
-				cout << "ctrl" << endl;
-			}
-			else if(keys[KEY_LEFTALT] or keys[KEY_RIGHTALT])
-			{
-				cout << "alt" << endl;
-			}
-			else
-			{
-				if(keymap.contains(ev.code))
+				char c = keymap[ev.code];
+				cout << c;
+				cout.flush();
+				if((keys[KEY_LEFTCTRL] or keys[KEY_RIGHTCTRL] ) and c == 'q' or c == 'Q' )
 				{
-					char c = keymap[ev.code];
-					cout << c;
-					if(c == 'q' or c == 'Q' )
-					{
-						close();
-					}
+					close();
 				}
-					
+			}
+			else if(ev.value == 1 and !keymap.contains(ev.code))
+			{
+				cout << ev.code << endl;
 			}
 		}
 		else if(ev.type == EV_SYN)
@@ -109,9 +90,18 @@ void Application::keyhandle()
 	
 }
 
-void Application::init()
+bool Application::init()
 {
-	system("clear");
+	try
+	{
+		keyboard =  getKeyboardPath();
+	}
+	catch(std::runtime_error ex)
+	{
+		cerr << ex.what();
+		return false;
+	}
+
 	cout << "start aplication" << endl;
 	system("stty -icanon");
 	system("setterm -cursor off");
@@ -137,6 +127,7 @@ void Application::init()
 		}
 		keymap_file.close();
 	}
+	return true;
 }
 
 string getKeyboardPath()
@@ -217,7 +208,8 @@ void Application::finish()
 	system("setterm -cursor on");
 	system("clear");
 	tcsetattr(STDIN_FILENO,TCSANOW,&tio_orig);
-	fcntl(STDIN_FILENO,F_SETFL,0);	
+	fcntl(STDIN_FILENO,F_SETFL,0);
+	tcflush(STDIN_FILENO,TCIFLUSH);
 }
 
 void signalhandle(int signal)
@@ -229,12 +221,17 @@ void solveKeyEntry(const string& line,map<int,char>& keymap)
 {
 	int i = 0;
 	string code;
-
+	string key;
 	for( i = 0 ; i < line.size() and line[i] != ' ' ; ++i)
 	{
 		code += line[i];
 	}
 
-	i++;
-	keymap[std::stoi(code)] = line[i];
+	i++;	
+
+	for( ; i < line.size() ; ++i)
+	{
+		key += line[i];
+	}
+	keymap[std::stoi(code)] = std::stoi(key);
 }
